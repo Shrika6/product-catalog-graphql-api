@@ -123,7 +123,7 @@ func TestCreateProduct_DefaultCurrency(t *testing.T) {
 		},
 	}
 
-	svc := NewProductService(productRepo, categoryRepo, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	svc := NewProductService(productRepo, categoryRepo, slog.New(slog.NewTextHandler(io.Discard, nil)), nil)
 
 	product, err := svc.CreateProduct(context.Background(), CreateProductInput{
 		Name:          "Wireless Mouse",
@@ -140,7 +140,7 @@ func TestCreateProduct_DefaultCurrency(t *testing.T) {
 }
 
 func TestCreateProduct_InvalidName(t *testing.T) {
-	svc := NewProductService(&mockProductRepository{}, &mockCategoryRepository{}, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	svc := NewProductService(&mockProductRepository{}, &mockCategoryRepository{}, slog.New(slog.NewTextHandler(io.Discard, nil)), nil)
 
 	_, err := svc.CreateProduct(context.Background(), CreateProductInput{
 		Name:          "   ",
@@ -159,7 +159,7 @@ func TestCreateProduct_InvalidName(t *testing.T) {
 }
 
 func TestListProducts_InvalidPriceRange(t *testing.T) {
-	svc := NewProductService(&mockProductRepository{}, &mockCategoryRepository{}, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	svc := NewProductService(&mockProductRepository{}, &mockCategoryRepository{}, slog.New(slog.NewTextHandler(io.Discard, nil)), nil)
 	min := 100.0
 	max := 10.0
 
@@ -179,7 +179,7 @@ func TestDeleteProduct_NotFound(t *testing.T) {
 			return false, nil
 		},
 	}
-	svc := NewProductService(productRepo, &mockCategoryRepository{}, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	svc := NewProductService(productRepo, &mockCategoryRepository{}, slog.New(slog.NewTextHandler(io.Discard, nil)), nil)
 
 	_, err := svc.DeleteProduct(context.Background(), uuid.New().String())
 	if err == nil {

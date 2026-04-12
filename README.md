@@ -15,6 +15,7 @@ Production-oriented GraphQL Product Catalog API built with Go, gqlgen, PostgreSQ
 - GraphQL-friendly error responses with error codes
 - Optional Basic Auth middleware
 - Dataloader for category lookups (`Product.category`) to avoid N+1
+- Redis caching for product list and product-by-ID (5 minute TTL)
 - Service-layer unit tests
 
 ## Project Structure
@@ -96,6 +97,12 @@ Products support:
 cp .env.example .env
 ```
 
+If you want caching locally, ensure Redis is running and set:
+
+```env
+REDIS_ADDR=localhost:6379
+```
+
 ### 2) Start PostgreSQL
 
 ```bash
@@ -130,6 +137,7 @@ This starts:
 
 - `app` on `:8080`
 - `postgres` on `:5432`
+- `redis` on `:6379`
 
 ## Example GraphQL Operations
 
@@ -230,6 +238,16 @@ Set both env vars to enable auth on `/query`:
 BASIC_AUTH_USERNAME=admin
 BASIC_AUTH_PASSWORD=change-me
 ```
+
+## Redis Cache (Optional)
+
+Caching is enabled when `REDIS_ADDR` is set. If Redis is unavailable, the API will log a warning and continue without cache.
+
+Cache policy:
+
+- Product list queries (`products`) cached for 5 minutes
+- Product by ID (`product(id: ...)`) cached for 5 minutes
+- Cache invalidation on create/update/delete (list version bump + product key delete)
 
 ## Development Commands
 

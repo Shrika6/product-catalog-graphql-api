@@ -18,6 +18,17 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: product-catalog-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   app:
     build:
       context: .
@@ -28,8 +39,11 @@ services:
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
+      REDIS_ADDR: redis:6379
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     ports:
       - "8080:8080"

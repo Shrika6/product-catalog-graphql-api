@@ -23,6 +23,9 @@ type Config struct {
 	DBMaxOpenConns        int
 	DBMaxIdleConns        int
 	DBConnMaxLifetimeMins int
+	RedisAddr             string
+	RedisPassword         string
+	RedisDB               int
 	BasicAuthUsername     string
 	BasicAuthPassword     string
 }
@@ -44,6 +47,9 @@ func Load() (Config, error) {
 		DBMaxOpenConns:        getEnvInt("DB_MAX_OPEN_CONNS", 25),
 		DBMaxIdleConns:        getEnvInt("DB_MAX_IDLE_CONNS", 10),
 		DBConnMaxLifetimeMins: getEnvInt("DB_CONN_MAX_LIFETIME_MINUTES", 30),
+		RedisAddr:             getEnv("REDIS_ADDR", ""),
+		RedisPassword:         os.Getenv("REDIS_PASSWORD"),
+		RedisDB:               getEnvInt("REDIS_DB", 0),
 		BasicAuthUsername:     os.Getenv("BASIC_AUTH_USERNAME"),
 		BasicAuthPassword:     os.Getenv("BASIC_AUTH_PASSWORD"),
 	}

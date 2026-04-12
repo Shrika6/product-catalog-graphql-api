@@ -12,6 +12,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/redis/go-redis/v9"
 	"github.com/shrika/product-catalog-graphql-api/internal/graph/generated"
 	"github.com/shrika/product-catalog-graphql-api/internal/graph/resolver"
 	"github.com/shrika/product-catalog-graphql-api/internal/middleware"
@@ -48,7 +49,26 @@ func main() {
 	productRepo := repository.NewProductRepository(gormDB)
 	categoryRepo := repository.NewCategoryRepository(gormDB)
 
-	productService := service.NewProductService(productRepo, categoryRepo, log)
+	var redisClient *redis.Client
+	if cfg.RedisAddr != "" {
+		redisClient = redis.NewClient(&redis.Options{
+			Addr:     cfg.RedisAddr,
+			Password: cfg.RedisPassword,
+			DB:       cfg.RedisDB,
+		})
+
+		pingCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		if err := redisClient.Ping(pingCtx).Err(); err != nil {
+			log.Warn("redis unavailable, caching disabled", slog.String("error", err.Error()))
+			_ = redisClient.Close()
+			redisClient = nil
+		} else {
+			log.Info("redis connection established", slog.String("addr", cfg.RedisAddr))
+		}
+	}
+
+	productService := service.NewProductService(productRepo, categoryRepo, log, redisClient)
 	categoryService := service.NewCategoryService(categoryRepo, log)
 
 	resolverRoot := resolver.New(productService, categoryService, log)
