@@ -17,7 +17,8 @@ func NewPostgres(cfg config.Config, logger *slog.Logger) (*gorm.DB, error) {
 	}
 
 	db, err := gorm.Open(postgres.Open(cfg.DSN()), &gorm.Config{
-		Logger: gormlogger.Default.LogMode(gormLogLevel),
+		Logger:         gormlogger.Default.LogMode(gormLogLevel),
+		TranslateError: true,
 	})
 	if err != nil {
 		return nil, err

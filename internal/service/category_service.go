@@ -55,6 +55,9 @@ func (s *categoryService) CreateCategory(ctx context.Context, input CreateCatego
 
 	category := &model.Category{Name: name}
 	if err := s.categoryRepo.Create(ctx, category); err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, apperrors.InvalidArgument("category name already exists")
+		}
 		s.logger.Error("failed creating category", slog.String("error", err.Error()))
 		return nil, apperrors.Internal("failed to create category", err)
 	}
