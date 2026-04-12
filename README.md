@@ -14,6 +14,7 @@ Production-oriented GraphQL Product Catalog API built with Go, gqlgen, PostgreSQ
 - DB connection pooling
 - GraphQL-friendly error responses with error codes
 - Optional Basic Auth middleware
+- JWT-based auth to protect mutations
 - Dataloader for category lookups (`Product.category`) to avoid N+1
 - Redis caching for product list and product-by-ID (5 minute TTL)
 - Service-layer unit tests
@@ -237,6 +238,31 @@ Set both env vars to enable auth on `/query`:
 ```env
 BASIC_AUTH_USERNAME=admin
 BASIC_AUTH_PASSWORD=change-me
+```
+
+## JWT Authentication
+
+Mutations require a valid JWT (queries remain public). Configure:
+
+```env
+JWT_SECRET=change-me
+JWT_ISSUER=
+JWT_AUDIENCE=
+```
+
+Send the token in the `Authorization` header:
+
+```bash
+curl -sS -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -d '{"query":"mutation { createCategory(input:{name:\"Secure Category\"}) { id name } }"}' \
+  http://localhost:8080/query
+```
+
+If the token is missing or invalid, mutations return:
+
+```
+{"errors":[{"message":"unauthorized","extensions":{"code":"UNAUTHORIZED"}}]}
 ```
 
 ## Redis Cache (Optional)

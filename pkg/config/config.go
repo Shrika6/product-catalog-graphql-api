@@ -26,6 +26,9 @@ type Config struct {
 	RedisAddr             string
 	RedisPassword         string
 	RedisDB               int
+	JWTSecret             string
+	JWTIssuer             string
+	JWTAudience           string
 	BasicAuthUsername     string
 	BasicAuthPassword     string
 }
@@ -50,6 +53,9 @@ func Load() (Config, error) {
 		RedisAddr:             getEnv("REDIS_ADDR", ""),
 		RedisPassword:         os.Getenv("REDIS_PASSWORD"),
 		RedisDB:               getEnvInt("REDIS_DB", 0),
+		JWTSecret:             os.Getenv("JWT_SECRET"),
+		JWTIssuer:             os.Getenv("JWT_ISSUER"),
+		JWTAudience:           os.Getenv("JWT_AUDIENCE"),
 		BasicAuthUsername:     os.Getenv("BASIC_AUTH_USERNAME"),
 		BasicAuthPassword:     os.Getenv("BASIC_AUTH_PASSWORD"),
 	}

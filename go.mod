@@ -4,6 +4,7 @@ go 1.25.0
 
 require (
 	github.com/99designs/gqlgen v0.17.89
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/joho/godotenv v1.5.1

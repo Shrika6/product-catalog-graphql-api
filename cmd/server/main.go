@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/redis/go-redis/v9"
@@ -21,6 +22,8 @@ import (
 	"github.com/shrika/product-catalog-graphql-api/pkg/config"
 	"github.com/shrika/product-catalog-graphql-api/pkg/db"
 	"github.com/shrika/product-catalog-graphql-api/pkg/logger"
+	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 func main() {
@@ -74,9 +77,30 @@ func main() {
 	resolverRoot := resolver.New(productService, categoryService, log)
 	graphqlServer := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolverRoot}))
 	graphqlServer.SetErrorPresenter(resolver.GraphQLErrorPresenter)
+	graphqlServer.AroundOperations(func(ctx context.Context, next graphql.OperationHandler) graphql.ResponseHandler {
+		opCtx := graphql.GetOperationContext(ctx)
+		if opCtx != nil && opCtx.Operation != nil && opCtx.Operation.Operation == ast.Mutation {
+			if _, ok := middleware.UserFromContext(ctx); !ok {
+				return func(ctx context.Context) *graphql.Response {
+					return &graphql.Response{
+						Errors: gqlerror.List{
+							&gqlerror.Error{
+								Message: "unauthorized",
+								Extensions: map[string]any{
+									"code": "UNAUTHORIZED",
+								},
+							},
+						},
+					}
+				}
+			}
+		}
+		return next(ctx)
+	})
 
 	queryHandler := middleware.Chain(
 		graphqlServer,
+		middleware.JWTAuth(cfg.JWTSecret, cfg.JWTIssuer, cfg.JWTAudience, log),
 		middleware.BasicAuth(cfg.BasicAuthUsername, cfg.BasicAuthPassword),
 		middleware.RequestTimeout(cfg.RequestTimeout),
 		middleware.DataLoader(categoryRepo),
