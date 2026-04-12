@@ -1,0 +1,87 @@
+scalar Time
+
+type Product {
+  id: ID!
+  name: String!
+  description: String
+  price: Float!
+  currency: String!
+  categoryId: ID!
+  category: Category!
+  stockQuantity: Int!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type Category {
+  id: ID!
+  name: String!
+  createdAt: Time!
+  products(limit: Int = 20, offset: Int = 0): [Product!]!
+}
+
+input PaginationInput {
+  limit: Int = 20
+  offset: Int = 0
+}
+
+input ProductFilterInput {
+  minPrice: Float
+  maxPrice: Float
+  categoryId: ID
+  nameSearch: String
+}
+
+enum ProductSortField {
+  NAME
+  PRICE
+  CREATED_AT
+  UPDATED_AT
+  STOCK_QUANTITY
+}
+
+enum SortOrder {
+  ASC
+  DESC
+}
+
+input ProductSortInput {
+  field: ProductSortField = CREATED_AT
+  order: SortOrder = DESC
+}
+
+input CreateProductInput {
+  name: String!
+  description: String
+  price: Float!
+  currency: String = "USD"
+  categoryId: ID!
+  stockQuantity: Int! = 0
+}
+
+input UpdateProductInput {
+  name: String
+  description: String
+  price: Float
+  currency: String
+  categoryId: ID
+  stockQuantity: Int
+}
+
+input CreateCategoryInput {
+  name: String!
+}
+
+type Query {
+  products(filter: ProductFilterInput, pagination: PaginationInput, sorting: ProductSortInput): [Product!]!
+  product(id: ID!): Product
+  categories: [Category!]!
+  category(id: ID!): Category
+}
+
+type Mutation {
+  createProduct(input: CreateProductInput!): Product!
+  updateProduct(id: ID!, input: UpdateProductInput!): Product!
+  deleteProduct(id: ID!): Boolean!
+  createCategory(input: CreateCategoryInput!): Category!
+}

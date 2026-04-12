@@ -1,0 +1,28 @@
+schema:
+  - internal/graph/schema.graphqls
+
+exec:
+  filename: internal/graph/generated/generated.go
+  package: generated
+
+model:
+  filename: internal/graph/model/models_gen.go
+  package: model
+
+resolver:
+  layout: follow-schema
+  dir: internal/graph/resolver
+  package: resolver
+
+models:
+  Time:
+    model:
+      - github.com/99designs/gqlgen/graphql.Time
+  Product:
+    fields:
+      category:
+        resolver: true
+  Category:
+    fields:
+      products:
+        resolver: true
