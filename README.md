@@ -79,7 +79,7 @@ Products support:
 
 - `minPrice` / `maxPrice`
 - `categoryId`
-- `nameSearch` (`ILIKE`)
+- `nameSearch` (PostgreSQL full-text search across name + description)
 
 ### Pagination
 

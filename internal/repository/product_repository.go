@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/shrika/product-catalog-graphql-api/internal/model"
@@ -32,7 +34,12 @@ func (r *productRepository) List(ctx context.Context, filter ProductFilter) ([]*
 		query = query.Where("category_id = ?", *filter.CategoryID)
 	}
 	if filter.NameSearch != nil && *filter.NameSearch != "" {
-		query = query.Where("name ILIKE ?", "%"+*filter.NameSearch+"%")
+		if tsQuery, ok := buildTSQuery(*filter.NameSearch); ok {
+			query = query.Where(
+				"to_tsvector('english', coalesce(name, '') || ' ' || coalesce(description, '')) @@ to_tsquery('english', ?)",
+				tsQuery,
+			)
+		}
 	}
 
 	sortBy := resolveSortBy(filter.SortBy)
@@ -119,4 +126,21 @@ func resolveSortOrder(sortOrder string) string {
 		return "ASC"
 	}
 	return "DESC"
+}
+
+var nonWordRegex = regexp.MustCompile(`[^a-zA-Z0-9]+`)
+
+func buildTSQuery(input string) (string, bool) {
+	normalized := nonWordRegex.ReplaceAllString(strings.TrimSpace(input), " ")
+	if normalized == "" {
+		return "", false
+	}
+	tokens := strings.Fields(normalized)
+	if len(tokens) == 0 {
+		return "", false
+	}
+	for i, token := range tokens {
+		tokens[i] = strings.ToLower(token) + ":*"
+	}
+	return strings.Join(tokens, " & "), true
 }
