@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/shrika/product-catalog-graphql-api/internal/model"
+	"github.com/shrika/product-catalog-graphql-api/pkg/metrics"
 	"gorm.io/gorm"
 )
 
@@ -55,30 +57,44 @@ func (r *productRepository) List(ctx context.Context, filter ProductFilter) ([]*
 		offset = 0
 	}
 
+	start := time.Now()
 	if err := query.Limit(limit).Offset(offset).Find(&products).Error; err != nil {
+		metrics.DBQueryFinished("product_repository", "List", time.Since(start))
 		return nil, err
 	}
+	metrics.DBQueryFinished("product_repository", "List", time.Since(start))
 	return products, nil
 }
 
 func (r *productRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.Product, error) {
 	var product model.Product
+	start := time.Now()
 	if err := r.db.WithContext(ctx).First(&product, "id = ?", id).Error; err != nil {
+		metrics.DBQueryFinished("product_repository", "GetByID", time.Since(start))
 		return nil, err
 	}
+	metrics.DBQueryFinished("product_repository", "GetByID", time.Since(start))
 	return &product, nil
 }
 
 func (r *productRepository) Create(ctx context.Context, product *model.Product) error {
-	return r.db.WithContext(ctx).Create(product).Error
+	start := time.Now()
+	err := r.db.WithContext(ctx).Create(product).Error
+	metrics.DBQueryFinished("product_repository", "Create", time.Since(start))
+	return err
 }
 
 func (r *productRepository) Update(ctx context.Context, product *model.Product) error {
-	return r.db.WithContext(ctx).Save(product).Error
+	start := time.Now()
+	err := r.db.WithContext(ctx).Save(product).Error
+	metrics.DBQueryFinished("product_repository", "Update", time.Since(start))
+	return err
 }
 
 func (r *productRepository) Delete(ctx context.Context, id uuid.UUID) (bool, error) {
+	start := time.Now()
 	result := r.db.WithContext(ctx).Delete(&model.Product{}, "id = ?", id)
+	metrics.DBQueryFinished("product_repository", "Delete", time.Since(start))
 	if result.Error != nil {
 		return false, result.Error
 	}
@@ -94,12 +110,14 @@ func (r *productRepository) ListByCategory(ctx context.Context, categoryID uuid.
 		offset = 0
 	}
 
+	start := time.Now()
 	err := r.db.WithContext(ctx).
 		Where("category_id = ?", categoryID).
 		Order("created_at DESC").
 		Limit(limit).
 		Offset(offset).
 		Find(&products).Error
+	metrics.DBQueryFinished("product_repository", "ListByCategory", time.Since(start))
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title desc">
+  <title id="title">Catalog logo</title>
+  <desc id="desc">A stylized shopping bag icon with a check mark</desc>
+  <rect x="20" y="28" width="80" height="72" rx="10" fill="#0b3d2e"/>
+  <path d="M38 28c0-12 10-22 22-22s22 10 22 22h-8c0-8-6-14-14-14s-14 6-14 14h-8z" fill="#2ec27e"/>
+  <path d="M44 66l10 10 22-22" fill="none" stroke="#f4f7f5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

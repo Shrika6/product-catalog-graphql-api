@@ -1,0 +1,15 @@
+{
+  "phase": "before_dataloader",
+  "dataloader_enabled": false,
+  "requests": 120,
+  "success": 120,
+  "errors": 0,
+  "error_rate_pct": 0.0,
+  "throughput_rps": 14.631577998757534,
+  "avg_latency_ms": 20.574033333333336,
+  "p95_latency_ms": 21.114,
+  "p99_latency_ms": 21.858999999999998,
+  "avg_sql_queries_per_request": 1.0083333333333333,
+  "category_getbyid_db_calls": 0.0,
+  "productCategory_resolver_avg_ms": 17.692915089583376
+}

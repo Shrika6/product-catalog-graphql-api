@@ -1,0 +1,25 @@
+{
+  "benchmark": {
+    "base_url": "http://localhost:8080",
+    "product_id": "9ccd85ff-6990-4b42-b8ef-aafd11365351",
+    "hit_requests": 200,
+    "miss_requests": 200
+  },
+  "metrics": {
+    "cache_hit_ratio_pct": 50.0,
+    "cache_miss_ratio_pct": 50.0,
+    "avg_cache_hit_latency_ms": 0.2941650650000001,
+    "avg_cache_miss_latency_ms": 0.3112798800000002,
+    "latency_improvement_pct": 5.498207915012062,
+    "db_offload_pct": 50.0,
+    "db_queries_actual": 0.0,
+    "cache_hits": 200.0,
+    "cache_misses": 200.0,
+    "total_cache_lookups": 400.0
+  },
+  "formulas": {
+    "hit_rate_pct": "cache_hits / (cache_hits + cache_misses) * 100",
+    "latency_reduction_pct": "(avg_miss_latency_ms - avg_hit_latency_ms) / avg_miss_latency_ms * 100",
+    "db_offload_pct": "cache_hits / (cache_hits + cache_misses) * 100"
+  }
+}

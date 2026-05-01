@@ -13,12 +13,14 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/redis/go-redis/v9"
 	"github.com/shrika/product-catalog-graphql-api/internal/graph/generated"
 	"github.com/shrika/product-catalog-graphql-api/internal/graph/resolver"
 	"github.com/shrika/product-catalog-graphql-api/internal/middleware"
 	"github.com/shrika/product-catalog-graphql-api/internal/repository"
 	"github.com/shrika/product-catalog-graphql-api/internal/service"
+	"github.com/shrika/product-catalog-graphql-api/internal/ui"
 	"github.com/shrika/product-catalog-graphql-api/pkg/config"
 	"github.com/shrika/product-catalog-graphql-api/pkg/db"
 	"github.com/shrika/product-catalog-graphql-api/pkg/logger"
@@ -98,28 +100,41 @@ func main() {
 		return next(ctx)
 	})
 
-	queryHandler := middleware.Chain(
-		graphqlServer,
+	graphQLMiddlewares := []func(http.Handler) http.Handler{
 		middleware.JWTAuth(cfg.JWTSecret, cfg.JWTIssuer, cfg.JWTAudience, log),
 		middleware.BasicAuth(cfg.BasicAuthUsername, cfg.BasicAuthPassword),
 		middleware.RequestTimeout(cfg.RequestTimeout),
-		middleware.DataLoader(categoryRepo),
+		middleware.SQLStats(),
 		middleware.RequestLogging(log),
-	)
+	}
+	if cfg.DataloaderEnabled {
+		graphQLMiddlewares = append(graphQLMiddlewares, middleware.DataLoader(categoryRepo))
+	}
+
+	queryHandler := middleware.Chain(graphqlServer, graphQLMiddlewares...)
 
 	mux := http.NewServeMux()
 	mux.Handle("/query", queryHandler)
+	mux.Handle("/metrics", promhttp.Handler())
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))
 	})
+
+	uiHandler, err := ui.Handler()
+	if err != nil {
+		log.Error("failed to initialize ui handler", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+	mux.Handle("/", uiHandler)
+
 	if cfg.AppEnv != "production" {
-		mux.Handle("/", playground.Handler("Product Catalog GraphQL", "/query"))
+		mux.Handle("/playground", playground.Handler("Product Catalog GraphQL", "/query"))
 	}
 
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           mux,
+		Handler:           middleware.Metrics()(mux),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      15 * time.Second,

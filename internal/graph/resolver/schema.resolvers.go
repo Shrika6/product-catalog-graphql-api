@@ -7,6 +7,7 @@ package resolver
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/shrika/product-catalog-graphql-api/internal/graph/dataloader"
@@ -14,10 +15,18 @@ import (
 	"github.com/shrika/product-catalog-graphql-api/internal/graph/model"
 	"github.com/shrika/product-catalog-graphql-api/internal/service"
 	apperrors "github.com/shrika/product-catalog-graphql-api/pkg/errors"
+	"github.com/shrika/product-catalog-graphql-api/pkg/metrics"
 )
 
 // Products is the resolver for the products field.
-func (r *categoryResolver) Products(ctx context.Context, obj *model.Category, limit *int, offset *int) ([]*model.Product, error) {
+func (r *categoryResolver) Products(ctx context.Context, obj *model.Category, limit *int, offset *int) (result []*model.Product, err error) {
+	operation := "categoryProducts"
+	metrics.GraphQLOperationStarted(operation)
+	start := time.Now()
+	defer func() {
+		metrics.GraphQLOperationFinished(operation, time.Since(start), err)
+	}()
+
 	categoryID, err := uuid.Parse(obj.ID)
 	if err != nil {
 		return nil, apperrors.InvalidArgument("category id is invalid")
@@ -40,7 +49,14 @@ func (r *categoryResolver) Products(ctx context.Context, obj *model.Category, li
 }
 
 // CreateProduct is the resolver for the createProduct field.
-func (r *mutationResolver) CreateProduct(ctx context.Context, input model.CreateProductInput) (*model.Product, error) {
+func (r *mutationResolver) CreateProduct(ctx context.Context, input model.CreateProductInput) (result *model.Product, err error) {
+	operation := "createProduct"
+	metrics.GraphQLOperationStarted(operation)
+	start := time.Now()
+	defer func() {
+		metrics.GraphQLOperationFinished(operation, time.Since(start), err)
+	}()
+
 	product, err := r.ProductService.CreateProduct(ctx, service.CreateProductInput{
 		Name:          input.Name,
 		Description:   input.Description,
@@ -56,7 +72,14 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Create
 }
 
 // UpdateProduct is the resolver for the updateProduct field.
-func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input model.UpdateProductInput) (*model.Product, error) {
+func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input model.UpdateProductInput) (result *model.Product, err error) {
+	operation := "updateProduct"
+	metrics.GraphQLOperationStarted(operation)
+	start := time.Now()
+	defer func() {
+		metrics.GraphQLOperationFinished(operation, time.Since(start), err)
+	}()
+
 	product, err := r.ProductService.UpdateProduct(ctx, id, service.UpdateProductInput{
 		Name:          input.Name,
 		Description:   input.Description,
@@ -72,12 +95,26 @@ func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input m
 }
 
 // DeleteProduct is the resolver for the deleteProduct field.
-func (r *mutationResolver) DeleteProduct(ctx context.Context, id string) (bool, error) {
+func (r *mutationResolver) DeleteProduct(ctx context.Context, id string) (result bool, err error) {
+	operation := "deleteProduct"
+	metrics.GraphQLOperationStarted(operation)
+	start := time.Now()
+	defer func() {
+		metrics.GraphQLOperationFinished(operation, time.Since(start), err)
+	}()
+
 	return r.ProductService.DeleteProduct(ctx, id)
 }
 
 // CreateCategory is the resolver for the createCategory field.
-func (r *mutationResolver) CreateCategory(ctx context.Context, input model.CreateCategoryInput) (*model.Category, error) {
+func (r *mutationResolver) CreateCategory(ctx context.Context, input model.CreateCategoryInput) (result *model.Category, err error) {
+	operation := "createCategory"
+	metrics.GraphQLOperationStarted(operation)
+	start := time.Now()
+	defer func() {
+		metrics.GraphQLOperationFinished(operation, time.Since(start), err)
+	}()
+
 	category, err := r.CategoryService.CreateCategory(ctx, service.CreateCategoryInput{Name: input.Name})
 	if err != nil {
 		return nil, err
@@ -86,7 +123,14 @@ func (r *mutationResolver) CreateCategory(ctx context.Context, input model.Creat
 }
 
 // Category is the resolver for the category field.
-func (r *productResolver) Category(ctx context.Context, obj *model.Product) (*model.Category, error) {
+func (r *productResolver) Category(ctx context.Context, obj *model.Product) (result *model.Category, err error) {
+	operation := "productCategory"
+	metrics.GraphQLOperationStarted(operation)
+	start := time.Now()
+	defer func() {
+		metrics.GraphQLOperationFinished(operation, time.Since(start), err)
+	}()
+
 	if obj.Category != nil {
 		return obj.Category, nil
 	}
@@ -113,7 +157,14 @@ func (r *productResolver) Category(ctx context.Context, obj *model.Product) (*mo
 }
 
 // Products is the resolver for the products field.
-func (r *queryResolver) Products(ctx context.Context, filter *model.ProductFilterInput, pagination *model.PaginationInput, sorting *model.ProductSortInput) ([]*model.Product, error) {
+func (r *queryResolver) Products(ctx context.Context, filter *model.ProductFilterInput, pagination *model.PaginationInput, sorting *model.ProductSortInput) (result []*model.Product, err error) {
+	operation := "products"
+	metrics.GraphQLOperationStarted(operation)
+	start := time.Now()
+	defer func() {
+		metrics.GraphQLOperationFinished(operation, time.Since(start), err)
+	}()
+
 	svcFilter := service.ProductFilter{
 		Limit:     20,
 		Offset:    0,
@@ -167,7 +218,14 @@ func (r *queryResolver) Products(ctx context.Context, filter *model.ProductFilte
 }
 
 // Product is the resolver for the product field.
-func (r *queryResolver) Product(ctx context.Context, id string) (*model.Product, error) {
+func (r *queryResolver) Product(ctx context.Context, id string) (result *model.Product, err error) {
+	operation := "product"
+	metrics.GraphQLOperationStarted(operation)
+	start := time.Now()
+	defer func() {
+		metrics.GraphQLOperationFinished(operation, time.Since(start), err)
+	}()
+
 	product, err := r.ProductService.GetProduct(ctx, id)
 	if err != nil {
 		return nil, err
@@ -176,7 +234,14 @@ func (r *queryResolver) Product(ctx context.Context, id string) (*model.Product,
 }
 
 // Categories is the resolver for the categories field.
-func (r *queryResolver) Categories(ctx context.Context) ([]*model.Category, error) {
+func (r *queryResolver) Categories(ctx context.Context) (result []*model.Category, err error) {
+	operation := "categories"
+	metrics.GraphQLOperationStarted(operation)
+	start := time.Now()
+	defer func() {
+		metrics.GraphQLOperationFinished(operation, time.Since(start), err)
+	}()
+
 	categories, err := r.CategoryService.ListCategories(ctx)
 	if err != nil {
 		return nil, err
@@ -185,7 +250,14 @@ func (r *queryResolver) Categories(ctx context.Context) ([]*model.Category, erro
 }
 
 // Category is the resolver for the category field.
-func (r *queryResolver) Category(ctx context.Context, id string) (*model.Category, error) {
+func (r *queryResolver) Category(ctx context.Context, id string) (result *model.Category, err error) {
+	operation := "category"
+	metrics.GraphQLOperationStarted(operation)
+	start := time.Now()
+	defer func() {
+		metrics.GraphQLOperationFinished(operation, time.Since(start), err)
+	}()
+
 	category, err := r.CategoryService.GetCategory(ctx, id)
 	if err != nil {
 		return nil, err

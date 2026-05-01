@@ -29,6 +29,7 @@ type Config struct {
 	JWTSecret             string
 	JWTIssuer             string
 	JWTAudience           string
+	DataloaderEnabled     bool
 	BasicAuthUsername     string
 	BasicAuthPassword     string
 }
@@ -56,6 +57,7 @@ func Load() (Config, error) {
 		JWTSecret:             os.Getenv("JWT_SECRET"),
 		JWTIssuer:             os.Getenv("JWT_ISSUER"),
 		JWTAudience:           os.Getenv("JWT_AUDIENCE"),
+		DataloaderEnabled:     getEnvBool("DATALOADER_ENABLED", true),
 		BasicAuthUsername:     os.Getenv("BASIC_AUTH_USERNAME"),
 		BasicAuthPassword:     os.Getenv("BASIC_AUTH_PASSWORD"),
 	}
@@ -92,6 +94,18 @@ func getEnvInt(key string, fallback int) int {
 		return fallback
 	}
 	parsed, err := strconv.Atoi(value)
+	if err != nil {
+		return fallback
+	}
+	return parsed
+}
+
+func getEnvBool(key string, fallback bool) bool {
+	value := getEnv(key, "")
+	if value == "" {
+		return fallback
+	}
+	parsed, err := strconv.ParseBool(value)
 	if err != nil {
 		return fallback
 	}

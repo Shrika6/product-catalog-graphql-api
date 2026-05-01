@@ -1,0 +1,134 @@
+{
+  "steps": [
+    {
+      "target_rps": 50,
+      "qps": 49.97767126943357,
+      "p95_ms": 21.381464,
+      "p99_ms": 21.995558,
+      "error_rate": 0,
+      "max_vus": 80,
+      "max_cpu_pct": 0,
+      "max_mem_pct": 0,
+      "mem_peak": "n/a",
+      "stable": true,
+      "latency_knee": false
+    },
+    {
+      "target_rps": 100,
+      "qps": 99.94738480590095,
+      "p95_ms": 20.927753,
+      "p99_ms": 21.654662,
+      "error_rate": 0,
+      "max_vus": 80,
+      "max_cpu_pct": 0,
+      "max_mem_pct": 0,
+      "mem_peak": "n/a",
+      "stable": true,
+      "latency_knee": false
+    },
+    {
+      "target_rps": 150,
+      "qps": 149.9194743336891,
+      "p95_ms": 20.4009782,
+      "p99_ms": 21.48447648999998,
+      "error_rate": 0,
+      "max_vus": 80,
+      "max_cpu_pct": 0,
+      "max_mem_pct": 0,
+      "mem_peak": "n/a",
+      "stable": true,
+      "latency_knee": false
+    },
+    {
+      "target_rps": 200,
+      "qps": 199.888265799218,
+      "p95_ms": 20.1599276,
+      "p99_ms": 21.394185569999994,
+      "error_rate": 0,
+      "max_vus": 80,
+      "max_cpu_pct": 0,
+      "max_mem_pct": 0,
+      "mem_peak": "n/a",
+      "stable": true,
+      "latency_knee": false
+    },
+    {
+      "target_rps": 250,
+      "qps": 249.85976855350287,
+      "p95_ms": 19.98031,
+      "p99_ms": 21.560976,
+      "error_rate": 0,
+      "max_vus": 80,
+      "max_cpu_pct": 0,
+      "max_mem_pct": 0,
+      "mem_peak": "n/a",
+      "stable": true,
+      "latency_knee": false
+    },
+    {
+      "target_rps": 300,
+      "qps": 299.83051494614926,
+      "p95_ms": 19.936249,
+      "p99_ms": 21.577296,
+      "error_rate": 0,
+      "max_vus": 80,
+      "max_cpu_pct": 0,
+      "max_mem_pct": 0,
+      "mem_peak": "n/a",
+      "stable": true,
+      "latency_knee": false
+    },
+    {
+      "target_rps": 350,
+      "qps": 349.79900268473796,
+      "p95_ms": 19.889727,
+      "p99_ms": 21.81985,
+      "error_rate": 0,
+      "max_vus": 80,
+      "max_cpu_pct": 0,
+      "max_mem_pct": 0,
+      "mem_peak": "n/a",
+      "stable": true,
+      "latency_knee": false
+    },
+    {
+      "target_rps": 400,
+      "qps": 399.7754328879002,
+      "p95_ms": 19.861629,
+      "p99_ms": 21.868956,
+      "error_rate": 0,
+      "max_vus": 80,
+      "max_cpu_pct": 0,
+      "max_mem_pct": 0,
+      "mem_peak": "n/a",
+      "stable": true,
+      "latency_knee": false
+    }
+  ],
+  "capacity": {
+    "maximum_concurrent_clients_supported": 80,
+    "max_qps_before_saturation": 399.7754328879002,
+    "throughput_before_degrades": 399.7754328879002,
+    "saturation_step": {
+      "target_rps": 400,
+      "qps": 399.7754328879002,
+      "p95_ms": 19.861629,
+      "p99_ms": 21.868956,
+      "error_rate": 0,
+      "max_vus": 80,
+      "max_cpu_pct": 0,
+      "max_mem_pct": 0,
+      "mem_peak": "n/a",
+      "stable": true,
+      "latency_knee": false
+    },
+    "cpu_usage_at_saturation_pct": 0,
+    "memory_usage_at_saturation_pct": 0
+  },
+  "resume_bullets": [
+    "Sustained up to 399.78 req/s before saturation under stepped GraphQL load.",
+    "Supported approximately 80 concurrent virtual users in stable operation.",
+    "Observed saturation around target 400 rps with CPU 0.00% and memory 0.00%.",
+    "Latency knee detected near p95=19.86 ms and error rate=0.00%."
+  ]
+}

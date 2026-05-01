@@ -1,0 +1,44 @@
+{
+  "before": {
+    "phase": "before_dataloader",
+    "dataloader_enabled": false,
+    "requests": 120,
+    "success": 120,
+    "errors": 0,
+    "error_rate_pct": 0.0,
+    "throughput_rps": 14.631577998757534,
+    "avg_latency_ms": 20.574033333333336,
+    "p95_latency_ms": 21.114,
+    "p99_latency_ms": 21.858999999999998,
+    "avg_sql_queries_per_request": 1.0083333333333333,
+    "category_getbyid_db_calls": 0.0,
+    "productCategory_resolver_avg_ms": 17.692915089583376
+  },
+  "after": {
+    "phase": "after_dataloader",
+    "dataloader_enabled": true,
+    "requests": 120,
+    "success": 120,
+    "errors": 0,
+    "error_rate_pct": 0.0,
+    "throughput_rps": 14.511506025018654,
+    "avg_latency_ms": 20.263291666666667,
+    "p95_latency_ms": 20.854999999999997,
+    "p99_latency_ms": 21.549,
+    "avg_sql_queries_per_request": 1.0,
+    "category_getbyid_db_calls": 0.0,
+    "productCategory_resolver_avg_ms": 17.61830764541667
+  },
+  "improvement": {
+    "sql_queries_reduction_pct": 0.8264462809917326,
+    "resolver_latency_reduction_pct": 0.42167977288621195,
+    "p95_latency_reduction_pct": 1.2266742445770762,
+    "throughput_improvement_pct": -0.8206358449449215,
+    "db_calls_reduction_pct": 0.0
+  },
+  "formulas": {
+    "db_calls_reduction_pct": "(before_db_calls - after_db_calls) / before_db_calls * 100",
+    "resolver_latency_reduction_pct": "(before_resolver_ms - after_resolver_ms) / before_resolver_ms * 100",
+    "throughput_improvement_pct": "(after_rps - before_rps) / before_rps * 100"
+  }
+}

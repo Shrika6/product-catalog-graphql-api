@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Product Catalog UI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=Space+Grotesk:wght@600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <header role="banner">
+      <div class="brand">
+        <img src="/assets/catalog.svg" alt="Product Catalog logo" />
+        <div>
+          <h1>Product Catalog Explorer</h1>
+          <nav aria-label="Primary">
+            <ul>
+              <li><a href="#search-panel">Search</a></li>
+              <li><a href="#results-heading">Results</a></li>
+              <li><a href="/playground">GraphQL Playground</a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content" role="main">
+      <section id="search-panel" class="panel" role="region" aria-labelledby="search-heading">
+        <h2 id="search-heading">Search Products</h2>
+        <form id="search-form" aria-describedby="search-hint validation-message">
+          <p id="search-hint" class="meta">Use Tab to move through filters and Enter to submit.</p>
+          <p id="validation-message" class="status error" role="alert" aria-live="assertive"></p>
+          <fieldset class="filters">
+            <legend class="sr-only">Search and sorting controls</legend>
+            <div>
+              <label for="nameSearch">Search term</label>
+              <input id="nameSearch" name="nameSearch" type="text" placeholder="keyboard, monitor..." aria-label="Search term for name and description" />
+            </div>
+            <div>
+              <label for="minPrice">Minimum price</label>
+              <input id="minPrice" name="minPrice" type="number" min="0" step="0.01" inputmode="decimal" aria-label="Minimum price filter" />
+            </div>
+            <div>
+              <label for="maxPrice">Maximum price</label>
+              <input id="maxPrice" name="maxPrice" type="number" min="0" step="0.01" inputmode="decimal" aria-label="Maximum price filter" />
+            </div>
+            <div>
+              <label for="sortField">Sort field</label>
+              <select id="sortField" name="sortField" aria-label="Sort field">
+                <option value="CREATED_AT">Created at</option>
+                <option value="NAME">Name</option>
+                <option value="PRICE">Price</option>
+                <option value="UPDATED_AT">Updated at</option>
+              </select>
+            </div>
+            <div>
+              <label for="sortOrder">Sort order</label>
+              <select id="sortOrder" name="sortOrder" aria-label="Sort order">
+                <option value="DESC">Descending</option>
+                <option value="ASC">Ascending</option>
+              </select>
+            </div>
+            <div class="actions">
+              <button id="searchButton" type="submit" aria-label="Run product search" aria-controls="results">Search</button>
+            </div>
+          </fieldset>
+        </form>
+      </section>
+
+      <section class="panel" role="region" aria-labelledby="results-heading">
+        <h2 id="results-heading" tabindex="-1">Results</h2>
+        <p id="status" class="status" role="status" aria-live="polite">Ready.</p>
+        <div id="results" class="results-grid" role="list" aria-label="Product search results"></div>
+        <p id="empty-state" class="meta">No products to display yet. Try broadening your filters.</p>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

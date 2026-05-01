@@ -1,0 +1,6 @@
+{
+  "query": "query Product($id: ID!) { product(id: $id) { id name description price currency stockQuantity category { id name } } }",
+  "variables": {
+    "id": "REPLACE_PRODUCT_ID"
+  }
+}

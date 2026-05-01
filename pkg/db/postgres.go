@@ -37,6 +37,8 @@ func NewPostgres(cfg config.Config, logger *slog.Logger) (*gorm.DB, error) {
 		return nil, err
 	}
 
+	registerSQLCounterCallbacks(db)
+
 	logger.Info("postgres connection established",
 		slog.Int("max_open_conns", cfg.DBMaxOpenConns),
 		slog.Int("max_idle_conns", cfg.DBMaxIdleConns),

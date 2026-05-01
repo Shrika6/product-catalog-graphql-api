@@ -15,6 +15,7 @@ import (
 	"github.com/shrika/product-catalog-graphql-api/internal/model"
 	"github.com/shrika/product-catalog-graphql-api/internal/repository"
 	apperrors "github.com/shrika/product-catalog-graphql-api/pkg/errors"
+	"github.com/shrika/product-catalog-graphql-api/pkg/metrics"
 	"gorm.io/gorm"
 )
 
@@ -72,6 +73,7 @@ func (s *productService) ListProducts(ctx context.Context, filter ProductFilter)
 		return cachedProducts, nil
 	}
 
+	dbFetchStart := time.Now()
 	products, err := s.productRepo.List(ctx, repository.ProductFilter{
 		MinPrice:   filter.MinPrice,
 		MaxPrice:   filter.MaxPrice,
@@ -86,6 +88,7 @@ func (s *productService) ListProducts(ctx context.Context, filter ProductFilter)
 		s.logger.Error("failed listing products", slog.String("error", err.Error()))
 		return nil, apperrors.Internal("failed to list products", err)
 	}
+	metrics.CacheMissPenaltyObserved("redis", "product_list", time.Since(dbFetchStart))
 	s.cacheProductList(ctx, filter, products)
 	return products, nil
 }
@@ -100,6 +103,7 @@ func (s *productService) GetProduct(ctx context.Context, id string) (*model.Prod
 		return cachedProduct, nil
 	}
 
+	dbFetchStart := time.Now()
 	product, err := s.productRepo.GetByID(ctx, productID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -108,6 +112,7 @@ func (s *productService) GetProduct(ctx context.Context, id string) (*model.Prod
 		s.logger.Error("failed fetching product", slog.String("error", err.Error()))
 		return nil, apperrors.Internal("failed to fetch product", err)
 	}
+	metrics.CacheMissPenaltyObserved("redis", "product_by_id", time.Since(dbFetchStart))
 	s.cacheProduct(ctx, productID, product)
 	return product, nil
 }
@@ -342,19 +347,26 @@ func (s *productService) productListVersion(ctx context.Context) string {
 		return ""
 	}
 
+	start := time.Now()
 	version, err := s.cache.Get(ctx, productListVersionKey).Result()
 	if err == nil {
+		metrics.CacheOperationFinished("redis", "get_product_list_version", "hit", time.Since(start))
 		return version
 	}
 	if errors.Is(err, redis.Nil) {
+		metrics.CacheOperationFinished("redis", "get_product_list_version", "miss", time.Since(start))
+		setStart := time.Now()
 		if setErr := s.cache.Set(ctx, productListVersionKey, defaultListVersionSeed, 0).Err(); setErr != nil {
 			s.logger.Warn("failed to seed product list cache version", slog.String("error", setErr.Error()))
+			metrics.CacheOperationFinished("redis", "set_product_list_version", "error", time.Since(setStart))
 			return ""
 		}
+		metrics.CacheOperationFinished("redis", "set_product_list_version", "success", time.Since(setStart))
 		return defaultListVersionSeed
 	}
 
 	s.logger.Warn("failed to read product list cache version", slog.String("error", err.Error()))
+	metrics.CacheOperationFinished("redis", "get_product_list_version", "error", time.Since(start))
 	return ""
 }
 
@@ -362,9 +374,13 @@ func (s *productService) bumpProductListVersion(ctx context.Context) {
 	if !s.cacheEnabled() {
 		return
 	}
+	start := time.Now()
 	if err := s.cache.Incr(ctx, productListVersionKey).Err(); err != nil {
 		s.logger.Warn("failed to bump product list cache version", slog.String("error", err.Error()))
+		metrics.CacheOperationFinished("redis", "incr_product_list_version", "error", time.Since(start))
+		return
 	}
+	metrics.CacheOperationFinished("redis", "incr_product_list_version", "success", time.Since(start))
 }
 
 func (s *productService) getCachedProductList(ctx context.Context, filter ProductFilter) ([]*model.Product, bool) {
@@ -373,10 +389,14 @@ func (s *productService) getCachedProductList(ctx context.Context, filter Produc
 		return nil, false
 	}
 
+	start := time.Now()
 	payload, err := s.cache.Get(ctx, key).Bytes()
 	if err != nil {
 		if !errors.Is(err, redis.Nil) {
 			s.logger.Warn("failed to read product list cache", slog.String("error", err.Error()))
+			metrics.CacheOperationFinished("redis", "get_product_list", "error", time.Since(start))
+		} else {
+			metrics.CacheOperationFinished("redis", "get_product_list", "miss", time.Since(start))
 		}
 		return nil, false
 	}
@@ -385,8 +405,10 @@ func (s *productService) getCachedProductList(ctx context.Context, filter Produc
 	if err := json.Unmarshal(payload, &products); err != nil {
 		s.logger.Warn("failed to decode product list cache", slog.String("error", err.Error()))
 		_ = s.cache.Del(ctx, key).Err()
+		metrics.CacheOperationFinished("redis", "get_product_list", "error", time.Since(start))
 		return nil, false
 	}
+	metrics.CacheOperationFinished("redis", "get_product_list", "hit", time.Since(start))
 	return products, true
 }
 
@@ -400,9 +422,13 @@ func (s *productService) cacheProductList(ctx context.Context, filter ProductFil
 		s.logger.Warn("failed to encode product list cache", slog.String("error", err.Error()))
 		return
 	}
+	start := time.Now()
 	if err := s.cache.Set(ctx, key, payload, productCacheTTL).Err(); err != nil {
 		s.logger.Warn("failed to set product list cache", slog.String("error", err.Error()))
+		metrics.CacheOperationFinished("redis", "set_product_list", "error", time.Since(start))
+		return
 	}
+	metrics.CacheOperationFinished("redis", "set_product_list", "success", time.Since(start))
 }
 
 func (s *productService) getCachedProduct(ctx context.Context, id uuid.UUID) (*model.Product, bool) {
@@ -411,10 +437,14 @@ func (s *productService) getCachedProduct(ctx context.Context, id uuid.UUID) (*m
 	}
 
 	key := s.productCacheKey(id)
+	start := time.Now()
 	payload, err := s.cache.Get(ctx, key).Bytes()
 	if err != nil {
 		if !errors.Is(err, redis.Nil) {
 			s.logger.Warn("failed to read product cache", slog.String("error", err.Error()))
+			metrics.CacheOperationFinished("redis", "get_product_by_id", "error", time.Since(start))
+		} else {
+			metrics.CacheOperationFinished("redis", "get_product_by_id", "miss", time.Since(start))
 		}
 		return nil, false
 	}
@@ -423,9 +453,11 @@ func (s *productService) getCachedProduct(ctx context.Context, id uuid.UUID) (*m
 	if err := json.Unmarshal(payload, &product); err != nil {
 		s.logger.Warn("failed to decode product cache", slog.String("error", err.Error()))
 		_ = s.cache.Del(ctx, key).Err()
+		metrics.CacheOperationFinished("redis", "get_product_by_id", "error", time.Since(start))
 		return nil, false
 	}
 
+	metrics.CacheOperationFinished("redis", "get_product_by_id", "hit", time.Since(start))
 	return &product, true
 }
 
@@ -438,16 +470,24 @@ func (s *productService) cacheProduct(ctx context.Context, id uuid.UUID, product
 		s.logger.Warn("failed to encode product cache", slog.String("error", err.Error()))
 		return
 	}
+	start := time.Now()
 	if err := s.cache.Set(ctx, s.productCacheKey(id), payload, productCacheTTL).Err(); err != nil {
 		s.logger.Warn("failed to set product cache", slog.String("error", err.Error()))
+		metrics.CacheOperationFinished("redis", "set_product_by_id", "error", time.Since(start))
+		return
 	}
+	metrics.CacheOperationFinished("redis", "set_product_by_id", "success", time.Since(start))
 }
 
 func (s *productService) deleteProductCache(ctx context.Context, id uuid.UUID) {
 	if !s.cacheEnabled() {
 		return
 	}
+	start := time.Now()
 	if err := s.cache.Del(ctx, s.productCacheKey(id)).Err(); err != nil {
 		s.logger.Warn("failed to delete product cache", slog.String("error", err.Error()))
+		metrics.CacheOperationFinished("redis", "delete_product_by_id", "error", time.Since(start))
+		return
 	}
+	metrics.CacheOperationFinished("redis", "delete_product_by_id", "success", time.Since(start))
 }

@@ -1,0 +1,16 @@
+{
+  "query": "query Products($filter: ProductFilterInput, $pagination: PaginationInput, $sorting: ProductSortInput) { products(filter: $filter, pagination: $pagination, sorting: $sorting) { id name price currency stockQuantity category { id name } } }",
+  "variables": {
+    "filter": {
+      "nameSearch": "keyboard"
+    },
+    "pagination": {
+      "limit": 20,
+      "offset": 0
+    },
+    "sorting": {
+      "field": "PRICE",
+      "order": "ASC"
+    }
+  }
+}
